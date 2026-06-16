@@ -1,7 +1,11 @@
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+import hmac
+import hashlib
+import base64
+import json
+import time
+import bcrypt
 from datetime import datetime, timedelta
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from .database import get_db
@@ -9,33 +13,55 @@ from . import models
 import os
 
 SECRET_KEY = os.getenv("SECRET_KEY", "forex-predict-bot-secret-change-in-production-xyz-2024")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+ACCESS_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 7  # 7 days
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b'=').decode()
+
+
+def _b64url_decode(s: str) -> bytes:
+    padding = 4 - len(s) % 4
+    if padding != 4:
+        s += '=' * padding
+    return base64.urlsafe_b64decode(s)
+
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    header = _b64url_encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
+    payload = data.copy()
+    payload["exp"] = int(time.time()) + ACCESS_TOKEN_EXPIRE_SECONDS
+    payload_b64 = _b64url_encode(json.dumps(payload).encode())
+    signing_input = f"{header}.{payload_b64}"
+    sig = hmac.new(SECRET_KEY.encode(), signing_input.encode(), hashlib.sha256).digest()
+    return f"{signing_input}.{_b64url_encode(sig)}"
 
 
 def decode_token(token: str) -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        parts = token.split(".")
+        if len(parts) != 3:
+            raise ValueError("Bad token")
+        header, payload_b64, sig_b64 = parts
+        signing_input = f"{header}.{payload_b64}"
+        expected_sig = hmac.new(SECRET_KEY.encode(), signing_input.encode(), hashlib.sha256).digest()
+        if not hmac.compare_digest(expected_sig, _b64url_decode(sig_b64)):
+            raise ValueError("Bad signature")
+        payload = json.loads(_b64url_decode(payload_b64))
+        if payload.get("exp", 0) < int(time.time()):
+            raise ValueError("Token expired")
         return payload
-    except JWTError:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
