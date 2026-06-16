@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "========================================"
-echo "  ForexPredictBot - AI Trading Analyst  "
+echo "  ForexPredictBot AI - Trading Platform  "
 echo "========================================"
 echo ""
 
@@ -9,18 +9,55 @@ echo ""
 if [ ! -f ".env" ]; then
     echo "Creating .env from template..."
     cp .env.example .env
-    echo "Edit .env to add your ANTHROPIC_API_KEY for AI-enhanced analysis."
+    echo "Edit .env to add your ANTHROPIC_API_KEY for AI-enhanced chat analysis."
     echo ""
 fi
 
-# Install dependencies
-echo "Installing dependencies..."
+# Load .env
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Install Python deps
+echo "[1/3] Installing Python dependencies..."
 pip install -r requirements.txt -q
-
-echo ""
-echo "Starting server on http://localhost:8000"
-echo "Press Ctrl+C to stop."
+echo "      Done."
 echo ""
 
-# Run the app
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+# Install Node deps
+echo "[2/3] Installing Node.js dependencies..."
+cd frontend
+if [ ! -d "node_modules" ]; then
+    npm install --legacy-peer-deps
+else
+    echo "      node_modules already present, skipping."
+fi
+cd ..
+echo "      Done."
+echo ""
+
+# Start both servers
+echo "[3/3] Starting servers..."
+echo ""
+echo "  Backend API  -> http://localhost:8000"
+echo "  Frontend App -> http://localhost:3000"
+echo "  API Docs     -> http://localhost:8000/docs"
+echo ""
+echo "  Admin login: admin@forexpredictbot.com / Admin@2024!"
+echo ""
+echo "  Press Ctrl+C to stop all servers."
+echo "========================================"
+echo ""
+
+# Start backend in background
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload &
+BACKEND_PID=$!
+
+# Start frontend
+cd frontend && npm run dev &
+FRONTEND_PID=$!
+
+# Wait for both - cleanup on exit
+trap "echo ''; echo 'Shutting down...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" SIGINT SIGTERM
+
+wait $BACKEND_PID $FRONTEND_PID
