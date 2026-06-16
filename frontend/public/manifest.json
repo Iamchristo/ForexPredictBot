@@ -1,0 +1,28 @@
+{
+  "name": "ForexPredictBot AI",
+  "short_name": "TradeBot AI",
+  "description": "Precision Trading Intelligence - AI-powered forex, crypto & commodity predictions",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A0F",
+  "theme_color": "#F59E0B",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "utilities"],
+  "screenshots": [],
+  "lang": "en",
+  "dir": "ltr"
+}

@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #0A0A0F;
+  --color-surface: #12121A;
+  --color-surface2: #1A1A2E;
+  --color-border: #2A2A3D;
+  --color-gold: #F59E0B;
+  --color-gold-light: #FCD34D;
+  --color-indigo: #6366F1;
+  --color-green: #10B981;
+  --color-red: #EF4444;
+  --color-text: #F1F5F9;
+  --color-muted: #94A3B8;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: #F1F5F9;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(18, 18, 26, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(42, 42, 61, 0.5);
+  }
+
+  .gold-text {
+    background: linear-gradient(135deg, #F59E0B, #FCD34D);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface rounded-xl border border-border p-4;
+  }
+
+  .btn-gold {
+    @apply bg-gold text-bg font-semibold px-6 py-3 rounded-xl hover:bg-gold-light transition-colors;
+  }
+
+  .btn-outline {
+    @apply border border-border text-slate-300 font-semibold px-6 py-3 rounded-xl hover:border-gold hover:text-gold transition-colors;
+  }
+
+  .input-field {
+    @apply w-full bg-surface2 border border-border rounded-xl px-4 py-3 text-slate-100 placeholder-muted focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors;
+  }
+
+  .badge-buy {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-trade-buy/20 text-trade-buy border border-trade-buy/30;
+  }
+
+  .badge-sell {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-trade-sell/20 text-trade-sell border border-trade-sell/30;
+  }
+
+  .badge-neutral {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-trade-neutral/20 text-trade-neutral border border-trade-neutral/30;
+  }
+}
