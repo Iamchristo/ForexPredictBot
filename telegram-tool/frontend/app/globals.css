@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #0b0e14;
+  color: #e5e7eb;
+}
+
+.glass {
+  background: rgba(17, 21, 31, 0.7);
+  border: 1px solid #1f2533;
+  backdrop-filter: blur(8px);
+}
