@@ -18,8 +18,13 @@ if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-# Install Python deps
+# Install Python deps in an isolated virtualenv to avoid conflicts with
+# system-installed packages (e.g. Ubuntu's apt-managed cryptography/cffi).
 echo "[1/3] Installing Python dependencies..."
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+source venv/bin/activate
 pip install -r requirements.txt -q
 echo "      Done."
 echo ""

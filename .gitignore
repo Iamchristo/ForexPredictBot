@@ -8,3 +8,4 @@ __pycache__/
 frontend/package-lock.json
 frontend/.next/
 frontend/public/workbox-*.js
+venv/
