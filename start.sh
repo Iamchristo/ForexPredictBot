@@ -34,7 +34,16 @@ if [ ! -d "venv" ]; then
     "$PYBIN" -m venv venv
 fi
 source venv/bin/activate
-pip install -r requirements.txt -q
+if ! pip install -r requirements.txt; then
+    echo ""
+    echo "ERROR: pip install failed. See the output above for the real error."
+    exit 1
+fi
+if ! command -v uvicorn >/dev/null 2>&1; then
+    echo ""
+    echo "ERROR: uvicorn not found after pip install. The venv install did not complete."
+    exit 1
+fi
 echo "      Done."
 echo ""
 
@@ -49,6 +58,16 @@ fi
 cd ..
 echo "      Done."
 echo ""
+
+# Free up stale processes from a previous run that didn't shut down cleanly
+# (npm run dev spawns a child `next dev` process that a plain kill misses)
+for port in 3000 8000; do
+    pid=$(lsof -ti tcp:"$port" 2>/dev/null)
+    if [ -n "$pid" ]; then
+        echo "Port $port is in use by PID $pid, stopping it..."
+        kill -9 $pid 2>/dev/null
+    fi
+done
 
 # Start both servers
 echo "[3/3] Starting servers..."
@@ -72,6 +91,6 @@ cd frontend && npm run dev &
 FRONTEND_PID=$!
 
 # Wait for both - cleanup on exit
-trap "echo ''; echo 'Shutting down...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" SIGINT SIGTERM
+trap "echo ''; echo 'Shutting down...'; kill $BACKEND_PID 2>/dev/null; pkill -P $FRONTEND_PID 2>/dev/null; kill $FRONTEND_PID 2>/dev/null; exit" SIGINT SIGTERM
 
 wait $BACKEND_PID $FRONTEND_PID
