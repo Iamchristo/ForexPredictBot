@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Scraper & Bulk Messenger - Frontend
+After=network.target telegram-tool-backend.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ForexPredictBot/telegram-tool/frontend
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start -- -p 3001
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
