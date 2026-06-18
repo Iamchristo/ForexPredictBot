@@ -19,10 +19,19 @@ if [ -f ".env" ]; then
 fi
 
 # Install Python deps in an isolated virtualenv to avoid conflicts with
-# system-installed packages (e.g. Ubuntu's apt-managed cryptography/cffi).
+# system-installed packages (e.g. Ubuntu's apt-managed cryptography/cffi),
+# and to avoid bleeding-edge default `python3` versions for which pandas/
+# numpy don't yet ship prebuilt wheels (forcing slow/fragile source builds).
 echo "[1/3] Installing Python dependencies..."
+PYBIN=""
+for cand in python3.12 python3.11 python3.10 python3; do
+    if command -v "$cand" >/dev/null 2>&1; then
+        PYBIN="$cand"
+        break
+    fi
+done
 if [ ! -d "venv" ]; then
-    python3 -m venv venv
+    "$PYBIN" -m venv venv
 fi
 source venv/bin/activate
 pip install -r requirements.txt -q
